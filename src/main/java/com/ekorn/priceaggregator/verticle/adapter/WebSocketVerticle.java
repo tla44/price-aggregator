@@ -140,17 +140,6 @@ public abstract class WebSocketVerticle extends AbstractVerticle {
   }
 
   /**
-   * Schedules a reconnect attempt after a fixed delay.
-   * This is triggered when the WebSocket is closed or fails.
-   */
-  /*protected void scheduleReconnect() {
-    logger.info("Attempting to reconnect in {} ms...", reconnectDelayMs);
-    vertx.setTimer(reconnectDelayMs, id -> {
-      initiateConnection();
-    });
-  }*/
-
-  /**
    * Schedules a reconnect attempt with exponential backoff and a max cap.
    */
   protected void scheduleReconnect() {
