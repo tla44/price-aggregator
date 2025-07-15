@@ -1,0 +1,7 @@
+{
+  "exchanges": {
+    "bitstamp": {
+      "trackedSymbols": ["BTC-USD", "ETH-USD", "ETH-BTC"]
+    }
+  }
+}
