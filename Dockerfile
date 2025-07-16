@@ -21,7 +21,6 @@ RUN chmod +x gradlew
 RUN ./gradlew build -x test
 
 # Stage 2: Create the final runtime image
-# Use a smaller JRE base image for the final application to reduce image size.
 # Could be improved with a smaller base image - this one runs on arm64/amd64
 FROM amazoncorretto:17-alpine
 

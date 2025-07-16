@@ -77,8 +77,10 @@ Example Error Response (HTTP 404 Not Found):
 The MainVerticle includes a main method for convenient debugging from an IDE. You can set breakpoints and run the application directly from your IDE to step through the code.
 
 ## Future improvements
-- Use a smaller Docker base image for runtime such as `eclipse-temurin:17-jdk-alpine` to reduce image size and improve startup times.
 - Extend configuration options to include server port, number of verticle deployment instances, logging levels etc.
+- Add further adapters to support other exchanges.
+- Add endpoint: GET /prices/{symbol}/{exchange} to retrieve a price for a specific exchange.
+- Use a smaller Docker base image for runtime such as `eclipse-temurin:17-jdk-alpine` to reduce image size and improve startup times.
 
 ## Design decisions
 - Vert.x was chosen for its lightweight, event-driven, and non-blocking architecture, which enables high concurrency and low resource usage — useful for handling multiple WebSocket streams.
@@ -86,5 +88,6 @@ The MainVerticle includes a main method for convenient debugging from an IDE. Yo
 - Prices are returned as strings instead of numeric types to avoid precision loss and rounding issues. Sending as a string removes those risks.
 
 ## Scaling
-- Deploy on a Kubernetes cluster for horizontal scaling.
-- Using a shared Redis cache allows multiple instances to share price data.
+- Run the application on a Kubernetes cluster to achieve horizontal scaling by spinning up multiple pods. This allows the system to handle more load by distributing traffic across nodes.
+- Integrate a shared Redis cache to allow multiple Vert.x instances to read and write price data in a consistent manner.
+- Use DeploymentOptions().setInstances(n) to deploy multiple instances of a verticle, which allows you to take advantage of multi-core hardware by running concurrent event loops.
