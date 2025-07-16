@@ -68,7 +68,8 @@ public class MainVerticle extends AbstractVerticle {
           try {
             AppConfig config = raw.mapTo(AppConfig.class);
             promise.complete(config);
-          } catch (Exception e) {
+          } catch (IllegalArgumentException e) {
+            logger.error("Unable to map config file", result.cause());
             promise.fail(e);
           }
         }
