@@ -35,7 +35,7 @@ public class BitStampWebSocketVerticle extends WebSocketVerticle {
   /**
    * A mapping of tracked trading symbols (e.g., BTC-USD) to their corresponding Bitstamp WebSocket channel names.
    */
-  private final Map<String, String> symbolToChannel = new HashMap<>();
+  private final Map<String, String> channelToSymbol = new HashMap<>();
 
   /**
    * Constructs the BitStampWebSocketVerticle with a reference to a shared {@link PriceStore}.
@@ -54,11 +54,11 @@ public class BitStampWebSocketVerticle extends WebSocketVerticle {
    *
    * @param message the raw WebSocket message received as a string
    */
-  protected void handleMessage(String message) {
+  public void handleMessage(String message) {
     JsonObject json = new JsonObject(message);
     JsonObject data = json.getJsonObject("data");
     if (data != null && data.containsKey("price")) {
-      String matchedSymbol = getSymbolFromChannel(json.getString("channel"));
+      String matchedSymbol = channelToSymbol.get(json.getString("channel"));
       if (matchedSymbol != null) {
         store.updatePrice(matchedSymbol,
           new BigDecimal(data.getString("price")),
@@ -72,7 +72,7 @@ public class BitStampWebSocketVerticle extends WebSocketVerticle {
    *
    * @return a {@link Promise} that completes when symbol mapping is finished or fails if no relevant symbols are found
    */
-  protected Future<Void> fetchSymbols() {
+  public Future<Void> fetchSymbols() {
     Promise<Void> promise = Promise.promise();
     WebClient client = WebClient.create(vertx);
 
@@ -89,11 +89,11 @@ public class BitStampWebSocketVerticle extends WebSocketVerticle {
           String normalizedSymbol = base + "-" + counter;
           for (String tracked : trackedSymbols) {
             if (tracked.equalsIgnoreCase(normalizedSymbol) && market_type.equalsIgnoreCase("SPOT")) {
-              symbolToChannel.put(tracked, "live_trades_" + apiSymbol);
+              channelToSymbol.put("live_trades_" + apiSymbol, tracked);
             }
           }
         }
-        if (symbolToChannel.isEmpty()) {
+        if (channelToSymbol.isEmpty()) {
           promise.fail("No tracked symbols found in Bitstamp response.");
         } else {
           promise.complete();
@@ -120,7 +120,7 @@ public class BitStampWebSocketVerticle extends WebSocketVerticle {
       .setVersion(WebsocketVersion.V13);
 
     return client.connect(connectOptions).onSuccess(ws -> {
-      symbolToChannel.values().forEach(channel -> {
+      channelToSymbol.keySet().forEach(channel -> {
           JsonObject subscribeMessage = new JsonObject()
             .put("event", "bts:subscribe")
             .put("data", new JsonObject().put("channel", channel));
@@ -130,19 +130,8 @@ public class BitStampWebSocketVerticle extends WebSocketVerticle {
     });
   }
 
-  /**
-   * Retrieves the trading symbol associated with a Bitstamp WebSocket channel name.
-   *
-   * @param channel the Bitstamp channel name (e.g., "live_trades_btcusd")
-   * @return the matched tracked symbol (e.g., "BTC-USD"), or {@code null} if not found
-   */
-  private String getSymbolFromChannel(String channel) {
-    return symbolToChannel.entrySet()
-      .stream()
-      .filter(e -> e.getValue().equals(channel))
-      .map(Map.Entry::getKey)
-      .findFirst()
-      .orElse(null);
+  public Map<String, String> getChannelToSymbol() {
+    return channelToSymbol;
   }
-}
 
+}
