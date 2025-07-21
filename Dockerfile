@@ -1,5 +1,5 @@
 # Using a Gradle image that includes OpenJDK 17
-FROM gradle:jdk17 AS build
+FROM gradle:jdk21 AS build
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -21,8 +21,7 @@ RUN chmod +x gradlew
 RUN ./gradlew build -x test
 
 # Stage 2: Create the final runtime image
-# Could be improved with a smaller base image - this one runs on arm64/amd64
-FROM amazoncorretto:17-alpine
+FROM eclipse-temurin:21-jre-alpine
 
 # Set the working directory inside the container
 WORKDIR /app

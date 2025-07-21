@@ -27,17 +27,10 @@ public class RestApiVerticle extends AbstractVerticle {
   private static final Logger logger = LoggerFactory.getLogger(RestApiVerticle.class);
 
   /**
-   * The shared store that provides access to up-to-date market prices.
-   */
-  private final PriceStore store;
-
-  /**
    * Constructs a new REST API verticle with the given {@link PriceStore}.
    *
-   * @param store the store used to retrieve the latest price data
    */
-  public RestApiVerticle(PriceStore store) {
-    this.store = store;
+  public RestApiVerticle() {
   }
 
   /**
@@ -53,20 +46,27 @@ public class RestApiVerticle extends AbstractVerticle {
 
     router.get("/prices/:symbol").handler(ctx -> {
       String symbol = ctx.pathParam("symbol").toUpperCase();
-      PriceEntry entry = store.getPrice(symbol);
-      if (entry == null) {
-        ctx.response().setStatusCode(404)
-          .putHeader("Content-Type", "application/json")
-          .end(new JsonObject().put("error", "Symbol not available").encode());
-      } else {
-        ctx.response()
-          .putHeader("Content-Type", "application/json")
-          .end(new JsonObject()
-            .put("symbol", entry.getSymbol())
-            .put("price", entry.getPrice().toPlainString())
-            .put("timestamp", entry.getTimestamp()).encode()
-          );
-      }
+      JsonObject request = new JsonObject().put("symbol", symbol);
+      vertx.eventBus().request(MarketVerticle.EVENT_BUS_PRICE_QUERY, request, reply -> {
+        if (reply.succeeded()) {
+          JsonObject replyObject = (JsonObject) reply.result().body();
+          PriceEntry entry = replyObject.mapTo(PriceEntry.class);
+          ctx.response()
+            .putHeader("Content-Type", "application/json")
+            .end(new JsonObject()
+              .put("symbol", entry.getSymbol())
+              .put("price", entry.getPrice().toPlainString())
+              .put("timestamp", entry.getTimestamp()).encode()
+            );
+        } else {
+          logger.debug("Unable to find price for {}", symbol);
+          ctx.response().setStatusCode(404)
+            .putHeader("Content-Type", "application/json")
+            .end(new JsonObject().put("error", "Symbol not available").encode());
+        }
+      });
+
+
     });
 
     vertx.createHttpServer()

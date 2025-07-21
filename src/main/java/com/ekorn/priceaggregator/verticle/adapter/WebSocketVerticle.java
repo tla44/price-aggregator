@@ -37,11 +37,6 @@ public abstract class WebSocketVerticle extends AbstractVerticle {
   private final long reconnectDelayMs = 10000;
 
   /**
-   * Shared store used to persist or update price data across verticles.
-   */
-  protected final PriceStore store;
-
-  /**
    * Variables for reconnection logic
    */
   private int reconnectAttempts = 0;
@@ -51,11 +46,9 @@ public abstract class WebSocketVerticle extends AbstractVerticle {
   /**
    * Constructs a new WebSocketVerticle with the given shared {@link PriceStore}.
    *
-   * @param store the price store for persisting market data
    */
-  public WebSocketVerticle(PriceStore store, String[] trackedSymbols) {
+  public WebSocketVerticle(String[] trackedSymbols) {
     this.trackedSymbols = trackedSymbols;
-    this.store = store;
   }
 
   /**

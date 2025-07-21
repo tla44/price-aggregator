@@ -33,9 +33,16 @@ public class SimplePriceStore implements PriceStore {
    * @param timestamp the timestamp when the price was received or computed
    */
   public void updatePrice(String symbol, BigDecimal price, Instant timestamp) {
-    if (null != symbol && !symbol.isEmpty() && null != price && null != timestamp) {
-      logger.debug("Updated price for {}. New price {}. Timestamp {}", symbol, price, timestamp);
-      priceMap.put(symbol, new PriceEntry(symbol, price, timestamp));
+    updatePrice(new PriceEntry(symbol, price, timestamp));
+  }
+
+  public void updatePrice(PriceEntry priceEntry) {
+    if (null != priceEntry && null != priceEntry.getSymbol()
+      && !priceEntry.getSymbol().isEmpty()
+      && null != priceEntry.getPrice()
+      && null != priceEntry.getTimestamp()) {
+      logger.debug("Updated price for {}. New price {}. Timestamp {}", priceEntry.getSymbol(), priceEntry.getPrice(), priceEntry.getTimestamp());
+      priceMap.put(priceEntry.getSymbol(), priceEntry);
     }
   }
 

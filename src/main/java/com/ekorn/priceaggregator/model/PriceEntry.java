@@ -32,6 +32,8 @@ public class PriceEntry {
    */
   private String timestamp;
 
+  public PriceEntry() {};
+
   /**
    * Constructs a new {@code PriceEntry} with the specified symbol, price, and timestamp.
    *

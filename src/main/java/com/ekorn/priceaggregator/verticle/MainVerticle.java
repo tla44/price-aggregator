@@ -1,7 +1,6 @@
 package com.ekorn.priceaggregator.verticle;
 
 import com.ekorn.priceaggregator.config.AppConfig;
-import com.ekorn.priceaggregator.store.PriceStore;
 import com.ekorn.priceaggregator.store.SimplePriceStore;
 import com.ekorn.priceaggregator.verticle.adapter.BitStampWebSocketVerticle;
 import io.vertx.core.*;
@@ -29,14 +28,14 @@ public class MainVerticle extends AbstractVerticle {
   @Override
   public void start(Promise<Void> startPromise) {
     logger.info("Starting price-aggregator...");
-    PriceStore store = new SimplePriceStore();
 
     logger.info("Loading config...");
     Future<AppConfig> futureConfig = loadConfig();
     futureConfig.onSuccess(config -> {
       logger.info("Deploying verticles...");
-      vertx.deployVerticle(() -> new BitStampWebSocketVerticle(store, config.getExchanges().get("bitstamp").getTrackedSymbols()), new DeploymentOptions());
-      vertx.deployVerticle(() -> new RestApiVerticle(store), new DeploymentOptions())
+      vertx.deployVerticle(() -> new MarketVerticle(), new DeploymentOptions());
+      vertx.deployVerticle(() -> new BitStampWebSocketVerticle(config.getExchanges().get("bitstamp").getTrackedSymbols()), new DeploymentOptions());
+      vertx.deployVerticle(() -> new RestApiVerticle(), new DeploymentOptions())
         .onSuccess(id -> startPromise.complete())
         .onFailure(startPromise::fail);
       logger.info("Successfully started price-aggregator.");
@@ -88,8 +87,7 @@ public class MainVerticle extends AbstractVerticle {
     Vertx vertx = Vertx.vertx();
     vertx.deployVerticle(new MainVerticle(), res -> {
       if (!res.succeeded()) {
-        logger.error("Unable to start price-aggregator.");
-        res.cause().printStackTrace();
+        logger.error("Unable to start price-aggregator {}", res.cause().getMessage());
       }
     });
   }

@@ -1,6 +1,8 @@
 package com.ekorn.priceaggregator.verticle.adapter;
 
+import com.ekorn.priceaggregator.model.PriceEntry;
 import com.ekorn.priceaggregator.store.PriceStore;
+import com.ekorn.priceaggregator.verticle.MarketVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.http.WebSocket;
@@ -40,10 +42,9 @@ public class BitStampWebSocketVerticle extends WebSocketVerticle {
   /**
    * Constructs the BitStampWebSocketVerticle with a reference to a shared {@link PriceStore}.
    *
-   * @param store the price store used to persist and update price data
    */
-  public BitStampWebSocketVerticle(PriceStore store, String[] trackedSymbols) {
-    super(store, trackedSymbols);
+  public BitStampWebSocketVerticle(String[] trackedSymbols) {
+    super(trackedSymbols);
   }
 
   /**
@@ -60,9 +61,8 @@ public class BitStampWebSocketVerticle extends WebSocketVerticle {
     if (data != null && data.containsKey("price")) {
       String matchedSymbol = channelToSymbol.get(json.getString("channel"));
       if (matchedSymbol != null) {
-        store.updatePrice(matchedSymbol,
-          new BigDecimal(data.getString("price")),
-          Instant.now());
+        PriceEntry priceEntry = new PriceEntry(matchedSymbol, new BigDecimal(data.getString("price")), Instant.now());
+        vertx.eventBus().publish(MarketVerticle.EVENT_BUS_PRICE_UPDATE, JsonObject.mapFrom(priceEntry));
       }
     }
   }

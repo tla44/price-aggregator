@@ -17,6 +17,8 @@ public interface PriceStore {
    */
   void updatePrice(String symbol, BigDecimal price, Instant timestamp);
 
+  void updatePrice(PriceEntry priceEntry);
+
   /**
    * Retrieves the most recently stored price for the given symbol.
    *

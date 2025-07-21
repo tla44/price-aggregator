@@ -54,7 +54,7 @@ class RestApiVerticleTest {
     webClient = WebClient.create(vertx);
 
     // Deploy the RestApiVerticle, injecting the mocked PriceStore
-    vertx.deployVerticle(() -> new RestApiVerticle(mockPriceStore), new DeploymentOptions())
+    vertx.deployVerticle(() -> new RestApiVerticle(), new DeploymentOptions())
       .onComplete(testContext.succeedingThenComplete()); // Signal test context that deployment is complete
   }
 
